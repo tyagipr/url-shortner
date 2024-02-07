@@ -10,11 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-public class UrlShortenerServiceImplService implements UrlShortnerService {
+public class UrlShortenerServiceImpl implements UrlShortnerService {
 
     private final UrlRepository urlRepository;
 
-    public UrlShortenerServiceImplService(UrlRepository urlRepository) {
+    public UrlShortenerServiceImpl(UrlRepository urlRepository) {
         this.urlRepository = urlRepository;
     }
 
