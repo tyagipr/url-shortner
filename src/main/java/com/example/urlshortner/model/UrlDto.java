@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class UrlDto {
+    Long id;
     String shortUrl;
     String originalUrl;
 }

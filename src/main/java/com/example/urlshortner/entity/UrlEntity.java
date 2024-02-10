@@ -5,22 +5,22 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "URLS")
 public class UrlEntity {
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    private Long id;
 
-    @Column(name = "ORIGINAL_URL")
+    @Column(name = "original_url")
     private String originalUrl;
 
-    @Column(name = "SHORT_URL")
+    @Column(name = "short_url")
     private String shortUrl;
 
     public String getOriginalUrl() {
