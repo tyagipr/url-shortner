@@ -14,4 +14,9 @@ public class FunctionUtils {
         System.out.println("generatedString  " + generatedString);
         return generatedString;
     }
+
+    public boolean isValidUrl(String urlString) {
+        String regex = "^(https?://)([\\w\\-]+\\.)+[\\w\\-]+(/[\\w\\-./?%&=]*)?$";
+        return urlString.matches(regex);
+    }
 }

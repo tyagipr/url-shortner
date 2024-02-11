@@ -1,29 +1,29 @@
 package com.example.urlshortner.response;
 
 public class ApiResponse {
-    private String message;
-    private Object data;
+    private String text;
+    private Object json;
 
-    public ApiResponse(String message, Object data) {
-        this.message = message;
-        this.data = data;
+    public ApiResponse(String text, Object json) {
+        this.text = text;
+        this.json = json;
     }
 
     // Getters and setters
-    public String getMessage() {
-        return message;
+    public String getText() {
+        return text;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setText(String message) {
+        this.text = message;
     }
 
-    public Object getData() {
-        return data;
+    public Object getJson() {
+        return json;
     }
 
-    public void setData(Object data) {
-        this.data = data;
+    public void setJson(Object json) {
+        this.json = json;
     }
 }
 
