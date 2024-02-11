@@ -18,4 +18,5 @@ public interface UrlRepository extends JpaRepository<UrlEntity, Long> {
     @Transactional
     @Query("UPDATE UrlEntity SET originalUrl=:originalUrl WHERE id = :id")
     void updateOriginalUrlById(Long id, String originalUrl);
+
 }

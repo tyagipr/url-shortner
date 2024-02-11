@@ -4,25 +4,15 @@ import lombok.Data;
 
 @Data
 public class UrlDao {
-    String longUrl;
-    String userId;
+    String value;
+    String url;
 
-    public String getLongUrl() {
-        return longUrl;
+    public String getValue() {
+        return value;
     }
 
-    public void setLongUrl(String longUrl) {
-        this.longUrl = longUrl;
+    public void setValue(String value) {
+        this.value = value;
     }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-
 
 }

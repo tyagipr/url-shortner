@@ -11,10 +11,13 @@ import com.example.urlshortner.service.UrlShortnerServiceInterface;
 import com.example.urlshortner.model.UrlDao;
 import com.example.urlshortner.model.UrlDto;
 import com.example.urlshortner.repository.UrlRepository;
+import com.example.urlshortner.utils.FunctionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,15 +30,17 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
     private final UsedKeyRepository usedKeyRepository;
 
     private final KeyGeneratorServiceInterface keyGeneratorService;
+    private final FunctionUtils functionUtils;
 
     private UrlDto urlDto = new UrlDto();
 
-    private final String URL_DOMAIN_NAME = "small-url.com/";
-    public UrlShortenerServiceImpl(UrlRepository urlRepository, UnUsedKeyRepository unUsedKeyRepository, UsedKeyRepository usedKeyRepository, KeyGeneratorServiceInterface keyGeneratorService) {
+    private final String URL_DOMAIN_NAME = "https://short-url/";
+    public UrlShortenerServiceImpl(UrlRepository urlRepository, UnUsedKeyRepository unUsedKeyRepository, UsedKeyRepository usedKeyRepository, KeyGeneratorServiceInterface keyGeneratorService, FunctionUtils functionUtils) {
         this.urlRepository = urlRepository;
         this.unUsedKeyRepository = unUsedKeyRepository;
         this.usedKeyRepository = usedKeyRepository;
         this.keyGeneratorService = keyGeneratorService;
+        this.functionUtils = functionUtils;
     }
 
     @Override
@@ -43,7 +48,7 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
         Optional<UrlEntity> optionalUrlEntity = urlRepository.findById(id);
         if(optionalUrlEntity.isPresent()) {
             urlDto.setShortUrl(optionalUrlEntity.get().getShortUrl());
-            urlDto.setOriginalUrl(optionalUrlEntity.get().getOriginalUrl());
+            urlDto.setValue(optionalUrlEntity.get().getOriginalUrl());
         }else {
             throw new Exception("url not found");
         }
@@ -51,22 +56,39 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
     }
 
     @Override
-    public void deletedShortUrlById(Long id) throws Exception {
-        try {
+    public void deleteUrlById(Long id) throws Exception {
+        if(urlRepository.existsById(id)) {
             urlRepository.deleteById(id);
-        }catch (Exception e) {
-            log.error("error in deleting short url for id : {} ", id, e);
-            throw new Exception("error in deleting short url");
+        }else {
+            throw new Exception("id does not exist");
+        }
+
+    }
+
+    @Override
+    public void modifyOriginalUrl(String updatedUrl , Long id) throws CustomException {
+        if(functionUtils.isValidUrl(updatedUrl)) {
+            urlRepository.updateOriginalUrlById(id, updatedUrl);
+        }else {
+            throw new CustomException("invalid url");
         }
     }
 
     @Override
-    public void modifyOriginalUrl(UrlDao urlDao , Long id) throws Exception {
-        try {
-            urlRepository.updateOriginalUrlById(id, urlDao.getLongUrl());
-        }catch (Exception e) {
-            throw new Exception("error in modifying original url");
+    public List<UrlDto> getAllEntries() {
+        List<UrlEntity> allUrlsEntries = urlRepository.findAll();
+        List<UrlDto> urlDtoList = new ArrayList<>();
+        for(UrlEntity urlEntity : allUrlsEntries) {
+            UrlDto urlObj = new UrlDto();
+            urlObj.setValue(urlEntity.getOriginalUrl());
+            urlDtoList.add(urlObj);
         }
+        return urlDtoList;
+    }
+
+    @Override
+    public void deleteAllEntries() {
+        urlRepository.deleteAll();
     }
 
     @Override
@@ -93,17 +115,16 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
 
         String shortURl = URL_DOMAIN_NAME + hashKey;
 
-        Optional<UrlEntity> urlEntry = urlRepository.findEntryByOriginalUrl(urlDao.getLongUrl());
+        Optional<UrlEntity> urlEntry = urlRepository.findEntryByOriginalUrl(urlDao.getValue());
         if(urlEntry.isPresent()) {
-            urlDto.setOriginalUrl(urlEntry.get().getOriginalUrl());
+            urlDto.setValue(urlEntry.get().getOriginalUrl());
             urlDto.setShortUrl(urlEntry.get().getShortUrl());
             urlDto.setId(urlEntry.get().getId());
             return urlDto;
         }
 
-        urlEntity.setOriginalUrl(urlDao.getLongUrl());
+        urlEntity.setOriginalUrl(urlDao.getValue());
         urlEntity.setShortUrl(shortURl);
-        urlEntity.setUserId(urlDao.getUserId());
 
         // save in used repository
         UsedKeyEntity usedKeyEntity = new UsedKeyEntity();
@@ -122,7 +143,7 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
             log.error(e.getMessage());
             throw new CustomException("error in saving url data");
         }
-        urlDto.setOriginalUrl(urlEntity.getOriginalUrl());
+        urlDto.setValue(urlEntity.getOriginalUrl());
         urlDto.setShortUrl(urlEntity.getShortUrl());
         urlDto.setId(urlEntity.getId());
         return urlDto;

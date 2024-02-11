@@ -6,5 +6,5 @@ import lombok.Data;
 public class UrlDto {
     Long id;
     String shortUrl;
-    String originalUrl;
+    String value;
 }

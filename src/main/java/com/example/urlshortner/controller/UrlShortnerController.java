@@ -1,6 +1,7 @@
 package com.example.urlshortner.controller;
 
-import com.example.urlshortner.entity.UrlEntity;
+import com.example.urlshortner.exception.CustomException;
+import com.example.urlshortner.model.UpdateUrlData;
 import com.example.urlshortner.service.UrlShortnerServiceInterface;
 import com.example.urlshortner.model.UrlDao;
 import com.example.urlshortner.model.UrlDto;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -23,24 +25,23 @@ public class UrlShortnerController {
         this.urlShortnerServiceInterface = urlShortnerServiceInterface;
     }
 
-    @PostMapping("api/v1/post")
+    @PostMapping("")
     public ResponseEntity postUrlToShorten(@RequestBody UrlDao urlDao) throws Exception{
-            if(urlDao.getLongUrl() == null) {
+            if(urlDao.getValue() == "") {
                 return new ResponseEntity<>("url required", HttpStatusCode.valueOf(400));
             }
             UrlDto urlDetails = urlShortnerServiceInterface.addNewUrlToShorten(urlDao);
 
-            Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("url-id", urlDetails.getId());
-            responseBody.put("short-url", urlDetails.getShortUrl());
 
-            ApiResponse apiResponse = new ApiResponse("Success", responseBody);
-            return new ResponseEntity<>(apiResponse, HttpStatusCode.valueOf(201));
+            UrlDto responseBody = new UrlDto();
+            responseBody.setId(urlDetails.getId());
+
+            return new ResponseEntity<>(responseBody, HttpStatusCode.valueOf(201));
 
     }
 
-    @GetMapping("api/v1/get")
-    public ResponseEntity getShortUrlById(@RequestParam(required = false) Long id) throws Exception{
+    @GetMapping("{id}")
+    public ResponseEntity getShortUrlById(@PathVariable("id") Long id) throws Exception{
         Map<String, String> responseBody = new HashMap<>();
 
         if(id == null) {
@@ -50,29 +51,39 @@ public class UrlShortnerController {
         }
 
         UrlDto urlDto = urlShortnerServiceInterface.getShortUrlById(id);
-        responseBody.put("short-url", urlDto.getShortUrl());
-        responseBody.put("original-url", urlDto.getOriginalUrl());
 
-        ApiResponse apiResponse = new ApiResponse("Success", responseBody);
-        return new ResponseEntity<>(apiResponse, HttpStatusCode.valueOf(301));
+        return new ResponseEntity<>(urlDto, HttpStatusCode.valueOf(301));
     }
 
-    @DeleteMapping("api/v1/delete")
-    public ResponseEntity deleteShortUrlById(@RequestParam Long id) throws Exception {
-        if(id == null) {
-            return new ResponseEntity<>("id not found", HttpStatusCode.valueOf(400));
+    @GetMapping("")
+    public ResponseEntity getAllEntries() throws Exception {
+        List<UrlDto> allEntries = urlShortnerServiceInterface.getAllEntries();
+        if(allEntries.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("value", null);
+            return new ResponseEntity<>(response, HttpStatusCode.valueOf(201));
         }
-        urlShortnerServiceInterface.deletedShortUrlById(id);
+        return new ResponseEntity<>(allEntries, HttpStatusCode.valueOf(200));
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity deleteUrlById(@PathVariable("id") Long id) throws Exception {
+        if(id == null) {
+            return new ResponseEntity<>("id not found", HttpStatusCode.valueOf(404));
+        }
+        urlShortnerServiceInterface.deleteUrlById(id);
         return new ResponseEntity<>("Url Deleted", HttpStatusCode.valueOf(204));
     }
 
-    @PutMapping("api/v1/modify")
-    public ResponseEntity modifyOriginalUrl(@RequestParam("id") Long id, @RequestBody UrlDao urlDao) throws Exception {
-        if(urlDao.getLongUrl() == null) {
-            return new ResponseEntity<>("require original url", HttpStatusCode.valueOf(400));
-        }
-        urlShortnerServiceInterface.modifyOriginalUrl(urlDao, id);
+    @PutMapping(value = "{id}" , consumes = "application/json")
+    public ResponseEntity modifyOriginalUrl(@PathVariable("id") Long id, @RequestBody UpdateUrlData urlData) throws CustomException {
+        urlShortnerServiceInterface.modifyOriginalUrl(urlData.getUrl(), id);
         return new ResponseEntity<>("Url Updated", HttpStatusCode.valueOf(200));
     }
 
+    @DeleteMapping(value = "", produces = "application/json")
+    public ResponseEntity deleteAllUrl() {
+        urlShortnerServiceInterface.deleteAllEntries();
+        return new ResponseEntity<>("All Urls Deleted", HttpStatusCode.valueOf(404));
+    }
 }
