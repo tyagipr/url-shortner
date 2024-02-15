@@ -14,7 +14,7 @@ public interface UrlShortnerServiceInterface {
 
     void deleteUrlById(Long id) throws Exception;
 
-    void modifyOriginalUrl(String updatedUrl, Long id) throws CustomException;
+    void modifyOriginalUrl(String updatedUrl, Long id) throws Exception, CustomException;
 
     List<UrlDto> getAllEntries();
     void deleteAllEntries();

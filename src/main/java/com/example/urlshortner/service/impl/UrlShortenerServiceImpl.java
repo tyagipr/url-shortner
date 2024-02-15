@@ -47,6 +47,7 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
     public UrlDto getShortUrlById(Long id) throws Exception {
         Optional<UrlEntity> optionalUrlEntity = urlRepository.findById(id);
         if(optionalUrlEntity.isPresent()) {
+            urlDto.setId(optionalUrlEntity.get().getId());
             urlDto.setShortUrl(optionalUrlEntity.get().getShortUrl());
             urlDto.setValue(optionalUrlEntity.get().getOriginalUrl());
         }else {
@@ -66,7 +67,11 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
     }
 
     @Override
-    public void modifyOriginalUrl(String updatedUrl , Long id) throws CustomException {
+    public void modifyOriginalUrl(String updatedUrl , Long id) throws Exception, CustomException {
+        Optional<UrlEntity> urlEntity = urlRepository.findById(id);
+        if(!urlEntity.isPresent()) {
+            throw new Exception("id does'nt exist");
+        }
         if(functionUtils.isValidUrl(updatedUrl)) {
             urlRepository.updateOriginalUrlById(id, updatedUrl);
         }else {
@@ -80,6 +85,8 @@ public class UrlShortenerServiceImpl implements UrlShortnerServiceInterface {
         List<UrlDto> urlDtoList = new ArrayList<>();
         for(UrlEntity urlEntity : allUrlsEntries) {
             UrlDto urlObj = new UrlDto();
+            urlObj.setId(urlEntity.getId());
+            urlObj.setShortUrl(urlEntity.getShortUrl());
             urlObj.setValue(urlEntity.getOriginalUrl());
             urlDtoList.add(urlObj);
         }
