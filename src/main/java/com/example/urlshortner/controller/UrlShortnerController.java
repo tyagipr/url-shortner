@@ -26,10 +26,10 @@ public class UrlShortnerController {
     }
 
     @PostMapping("")
-    public ResponseEntity postUrlToShorten(@RequestBody UrlDao urlDao) throws Exception{
-            if(urlDao.getValue() == "") {
-                return new ResponseEntity<>("url required", HttpStatusCode.valueOf(400));
-            }
+    public ResponseEntity postUrlToShorten(@RequestBody UrlDao urlDao) throws Exception {
+//            if(urlDao.getValue() == "") {
+//                return new ResponseEntity<>("url required", HttpStatusCode.valueOf(400));
+//            }
             UrlDto urlDetails = urlShortnerServiceInterface.addNewUrlToShorten(urlDao);
 
 
@@ -45,9 +45,7 @@ public class UrlShortnerController {
         Map<String, String> responseBody = new HashMap<>();
 
         if(id == null) {
-            responseBody.put("short-url", null);
-            responseBody.put("original-url",null);
-            return new ResponseEntity<>(new ApiResponse("id required", responseBody), HttpStatusCode.valueOf(400));
+            return new ResponseEntity<>("id required", HttpStatusCode.valueOf(400));
         }
 
         UrlDto urlDto = urlShortnerServiceInterface.getShortUrlById(id);
@@ -76,7 +74,7 @@ public class UrlShortnerController {
     }
 
     @PutMapping(value = "{id}" , consumes = "application/json")
-    public ResponseEntity modifyOriginalUrl(@PathVariable("id") Long id, @RequestBody UpdateUrlData urlData) throws CustomException {
+    public ResponseEntity modifyOriginalUrl(@PathVariable("id") Long id, @RequestBody UpdateUrlData urlData) throws Exception, CustomException {
         urlShortnerServiceInterface.modifyOriginalUrl(urlData.getUrl(), id);
         return new ResponseEntity<>("Url Updated", HttpStatusCode.valueOf(200));
     }
