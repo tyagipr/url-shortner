@@ -5,7 +5,7 @@ import com.example.urlshortner.model.UpdateUrlData;
 import com.example.urlshortner.service.UrlShortnerServiceInterface;
 import com.example.urlshortner.model.UrlDao;
 import com.example.urlshortner.model.UrlDto;
-import com.example.urlshortner.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +26,13 @@ public class UrlShortnerController {
     }
 
     @PostMapping("")
-    public ResponseEntity postUrlToShorten(@RequestBody UrlDao urlDao) throws Exception {
-//            if(urlDao.getValue() == "") {
-//                return new ResponseEntity<>("url required", HttpStatusCode.valueOf(400));
-//            }
+    public ResponseEntity postUrlToShorten(@RequestBody UrlDao urlDao, HttpServletRequest request) throws Exception {
+            if(request.getAttribute("invalid_token_error") == "Forbidden") {
+                return new ResponseEntity<>("Forbidden", HttpStatusCode.valueOf(403));
+            }
+            if(urlDao.getValue() == "") {
+                return new ResponseEntity<>("url required", HttpStatusCode.valueOf(400));
+            }
             UrlDto urlDetails = urlShortnerServiceInterface.addNewUrlToShorten(urlDao);
 
 
@@ -41,9 +44,11 @@ public class UrlShortnerController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity getShortUrlById(@PathVariable("id") Long id) throws Exception{
-        Map<String, String> responseBody = new HashMap<>();
-
+    public ResponseEntity getShortUrlById(HttpServletRequest request, @PathVariable("id") Long id) throws Exception{
+       log.info("checking headers {} ", request.getHeader("Authorization"));
+        if(request.getAttribute("invalid_token_error") == "Forbidden") {
+            return new ResponseEntity<>("Forbidden", HttpStatusCode.valueOf(403));
+        }
         if(id == null) {
             return new ResponseEntity<>("id required", HttpStatusCode.valueOf(400));
         }
@@ -54,7 +59,10 @@ public class UrlShortnerController {
     }
 
     @GetMapping("")
-    public ResponseEntity getAllEntries() throws Exception {
+    public ResponseEntity getAllEntries(HttpServletRequest request) throws Exception {
+        if(request.getAttribute("invalid_token_error") == "Forbidden") {
+            return new ResponseEntity<>("Forbidden", HttpStatusCode.valueOf(403));
+        }
         List<UrlDto> allEntries = urlShortnerServiceInterface.getAllEntries();
         if(allEntries.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
@@ -65,7 +73,11 @@ public class UrlShortnerController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity deleteUrlById(@PathVariable("id") Long id) throws Exception {
+    public ResponseEntity deleteUrlById(HttpServletRequest request, @PathVariable("id") Long id) throws Exception {
+        log.info("headers in delete by id {}", request.getAttribute("invalid_token_error"));
+        if(request.getAttribute("invalid_token_error") == "Forbidden") {
+            return new ResponseEntity<>("Forbidden", HttpStatusCode.valueOf(403));
+        }
         if(id == null) {
             return new ResponseEntity<>("id not found", HttpStatusCode.valueOf(404));
         }
@@ -74,13 +86,19 @@ public class UrlShortnerController {
     }
 
     @PutMapping(value = "{id}" , consumes = "application/json")
-    public ResponseEntity modifyOriginalUrl(@PathVariable("id") Long id, @RequestBody UpdateUrlData urlData) throws Exception, CustomException {
+    public ResponseEntity modifyOriginalUrl(@PathVariable("id") Long id, @RequestBody UpdateUrlData urlData, HttpServletRequest request) throws Exception, CustomException {
+        if(request.getAttribute("invalid_token_error") == "Forbidden") {
+            return new ResponseEntity<>("Forbidden", HttpStatusCode.valueOf(403));
+        }
         urlShortnerServiceInterface.modifyOriginalUrl(urlData.getUrl(), id);
         return new ResponseEntity<>("Url Updated", HttpStatusCode.valueOf(200));
     }
 
     @DeleteMapping(value = "", produces = "application/json")
-    public ResponseEntity deleteAllUrl() {
+    public ResponseEntity deleteAllUrl(HttpServletRequest request) {
+        if(request.getAttribute("invalid_token_error") == "Forbidden") {
+            return new ResponseEntity<>("Forbidden", HttpStatusCode.valueOf(403));
+        }
         urlShortnerServiceInterface.deleteAllEntries();
         return new ResponseEntity<>("All Urls Deleted", HttpStatusCode.valueOf(404));
     }
