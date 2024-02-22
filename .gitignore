@@ -34,3 +34,4 @@ build/
 
 ##log file ##
 /logs
+.DS_Store
